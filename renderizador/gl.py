@@ -6,14 +6,16 @@
 """
 Biblioteca Gráfica / Graphics Library.
 
-Desenvolvido por: <SEU NOME AQUI>
+Desenvolvido por: Raphael Azevedo
 Disciplina: Computação Gráfica
-Data: <DATA DE INÍCIO DA IMPLEMENTAÇÃO>
+Data: 24/02/2023
 """
 
 import time         # Para operações com tempo
 
 import gpu          # Simula os recursos de uma GPU
+
+import numpy as np  # Para operações com vetores e matrizes
 
 class GL:
     """Classe que representa a biblioteca gráfica (Graphics Library)."""
@@ -42,15 +44,10 @@ class GL:
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polypoint2D
         # você pode assumir o desenho dos pontos com a cor emissiva (emissiveColor).
 
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("Polypoint2D : pontos = {0}".format(point)) # imprime no terminal pontos
-        print("Polypoint2D : colors = {0}".format(colors)) # imprime no terminal as cores
+        # Desenha os pontos pulando de 2 em 2 para pegar os valores x e y de cada ponto na lista. 
+        for i in range(0, len(point), 2):
+            gpu.GPU.draw_pixel([int(point[i]), int(point[i+1])], gpu.GPU.RGB8, [c * 255 for c in colors['emissiveColor']])
 
-        # Exemplo:
-        pos_x = GL.width//2
-        pos_y = GL.height//2
-        gpu.GPU.draw_pixel([pos_x, pos_y], gpu.GPU.RGB8, [255, 0, 0])  # altera pixel (u, v, tipo, r, g, b)
-        # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
         
     @staticmethod
     def polyline2D(lineSegments, colors):
@@ -65,14 +62,30 @@ class GL:
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polyline2D
         # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
 
-        print("Polyline2D : lineSegments = {0}".format(lineSegments)) # imprime no terminal
-        print("Polyline2D : colors = {0}".format(colors)) # imprime no terminal as cores
-        
-        # Exemplo:
-        pos_x = GL.width//2
-        pos_y = GL.height//2
-        gpu.GPU.draw_pixel([pos_x, pos_y], gpu.GPU.RGB8, [255, 0, 255])  # altera pixel (u, v, tipo, r, g, b)
-        # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
+        # Aplicando o algoritmo de besenham para desenhar os pixeis entre os pontos dados
+        for i in range(0, len(lineSegments), 4):
+            x0 = int(lineSegments[i])
+            y0 = int(lineSegments[i+1])
+            x1 = int(lineSegments[i+2])
+            y1 = int(lineSegments[i+3])
+            dx = abs(x1 - x0)
+            dy = abs(y1 - y0)
+            sx = 1 if x0 < x1 else -1
+            sy = 1 if y0 < y1 else -1
+            err = dx - dy
+
+            while True:
+                GL.polypoint2D([x0, y0], colors)
+                if y0 == y1 and x0 == x1:
+                    break
+                e2 = 2 * err
+                if e2 > -dy:
+                    err = err - dy
+                    x0 = x0 + sx
+                if e2 < dx:
+                    err = err + dx
+                    y0 = y0 + sy
+
 
     @staticmethod
     def triangleSet2D(vertices, colors):
@@ -84,12 +97,30 @@ class GL:
         # quantidade de pontos é sempre multiplo de 3, ou seja, 6 valores ou 12 valores, etc.
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet2D
         # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
-        print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
-        print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
 
-        # Exemplo:
-        gpu.GPU.draw_pixel([6, 8], gpu.GPU.RGB8, [255, 255, 0])  # altera pixel (u, v, tipo, r, g, b)
+        for i in range(0, len(vertices), 6):
+            # Pega os vertices do Triangulo e desenha as linhas
+            x0 = int(vertices[i])
+            y0 = int(vertices[i+1])
+            x1 = int(vertices[i+2])
+            y1 = int(vertices[i+3])
+            x2 = int(vertices[i+4])
+            y2 = int(vertices[i+5])
+            GL.polyline2D([x0, y0, x1, y1, x1, y1, x2, y2, x2, y2, x0, y0], colors)
 
+            # Cria uma bounding box para o triangulo, usado para checar se o pixel está dentro do triangulo
+            x_min = min(x0, x1, x2)
+            x_max = max(x0, x1, x2)
+            y_min = min(y0, y1, y2)
+            y_max = max(y0, y1, y2)
+
+            # Percorre a bounding box e checa se o pixel está dentro do triangulo, desenhando ele se estiver
+            for x in range(x_min, x_max+1):
+                for y in range(y_min, y_max+1):
+                    if (x0 - x1) * (y - y1) - (y0 - y1) * (x - x1) >= 0 and \
+                          (x1 - x2) * (y - y2) - (y1 - y2) * (x - x2) >= 0 and \
+                            (x2 - x0) * (y - y0) - (y2 - y0) * (x - x0) >= 0:
+                                GL.polypoint2D([x, y], colors)
 
     @staticmethod
     def triangleSet(point, colors):
