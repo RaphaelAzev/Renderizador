@@ -12,8 +12,9 @@ Data: 24/02/2023
 """
 
 import time         # Para operações com tempo
-
 import gpu          # Simula os recursos de uma GPU
+import math         # Funções matemáticas
+import numpy as np  # Biblioteca do Numpy
 
 import numpy as np  # Para operações com vetores e matrizes
 
@@ -42,7 +43,7 @@ class GL:
         # coordenada x do segundo ponto e assim por diante. Assuma a quantidade de pontos
         # pelo tamanho da lista e assuma que sempre vira uma quantidade par de valores.
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polypoint2D
-        # você pode assumir o desenho dos pontos com a cor emissiva (emissiveColor).
+        # você pode assumir inicialmente o desenho dos pontos com a cor emissiva (emissiveColor).
 
         # Desenha os pontos pulando de 2 em 2 para pegar os valores x e y de cada ponto na lista. 
         for i in range(0, len(point), 2):
@@ -60,7 +61,7 @@ class GL:
         # função pode receber mais pontos para desenhar vários segmentos. Assuma que sempre
         # vira uma quantidade par de valores.
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polyline2D
-        # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
+        # você pode assumir inicialmente o desenho das linhas com a cor emissiva (emissiveColor).
 
         # Aplicando o algoritmo de besenham para desenhar os pixeis entre os pontos dados
         for i in range(0, len(lineSegments), 4):
@@ -96,7 +97,12 @@ class GL:
         # Já point[2] é a coordenada x do segundo ponto e assim por diante. Assuma que a
         # quantidade de pontos é sempre multiplo de 3, ou seja, 6 valores ou 12 valores, etc.
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet2D
-        # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
+        # você pode assumir inicialmente o desenho das linhas com a cor emissiva (emissiveColor).
+        print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
+        print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
+
+        # Exemplo:
+        gpu.GPU.draw_pixel([6, 8], gpu.GPU.RGB8, [255, 255, 0])  # altera pixel (u, v, tipo, r, g, b)
 
         for i in range(0, len(vertices), 6):
             # Pega os vertices do Triangulo e desenha as linhas
@@ -133,8 +139,10 @@ class GL:
         # No TriangleSet os triângulos são informados individualmente, assim os três
         # primeiros pontos definem um triângulo, os três próximos pontos definem um novo
         # triângulo, e assim por diante.
-        # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet
-        # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
+        # O parâmetro colors é um dicionário com os tipos cores possíveis, você pode assumir
+        # inicialmente, para o TriangleSet, o desenho das linhas com a cor emissiva
+        # (emissiveColor), conforme implementar novos materias você deverá suportar outros
+        # tipos de cores.
 
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
         print("TriangleSet : pontos = {0}".format(point)) # imprime no terminal pontos
